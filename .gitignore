@@ -216,3 +216,14 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+
+banking_ai_assistant_venv/
+
+scripts/setup_nltk.py
+scripts/setup_spacy.py
+
+models/
+vector_store/
+data/
+test/
