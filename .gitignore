@@ -223,7 +223,7 @@ banking_ai_assistant_venv/
 scripts/setup_nltk.py
 scripts/setup_spacy.py
 
-models/
+# models/
 vector_store/
 data/
 test/
