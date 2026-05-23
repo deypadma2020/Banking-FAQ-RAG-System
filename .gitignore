@@ -224,6 +224,11 @@ scripts/setup_nltk.py
 scripts/setup_spacy.py
 
 # models/
+# Large training artifacts
+models/X_train_combined.pkl
+models/X_test_combined.pkl
+
+
 vector_store/
 data/
 test/
