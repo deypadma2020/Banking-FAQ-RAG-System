@@ -235,3 +235,26 @@ models/rag/*.pkl
 vector_store/
 data/
 test/
+
+# Large embedding files
+models/embeddings/*.npy
+
+# RAG artifacts
+models/rag/*.pkl
+
+# FAISS indexes
+vectorstore/faiss_index/*
+
+# Large training artifacts
+models/X_train_combined.pkl
+models/X_test_combined.pkl
+
+# Virtual Environment
+banking_ai_assistant_venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Jupyter
+.ipynb_checkpoints/
