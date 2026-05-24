@@ -227,6 +227,9 @@ scripts/setup_spacy.py
 # Large training artifacts
 models/X_train_combined.pkl
 models/X_test_combined.pkl
+models/embeddings/sentence_transformer/
+models/embeddings/question_embeddings.npy
+models/rag/*.pkl
 
 
 vector_store/
