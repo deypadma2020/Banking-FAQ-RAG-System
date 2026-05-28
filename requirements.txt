@@ -34,3 +34,4 @@ jupyter==1.0.0
 wordcloud==1.9.3
 
 xgboost==2.1.0
+imbalanced-learn
