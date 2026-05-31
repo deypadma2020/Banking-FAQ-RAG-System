@@ -53,6 +53,7 @@ touch data/processed_data/banking_processed.csv
 # =========================================================
 
 touch notebooks/01_eda.ipynb
+touch notebooks/01_edawithllmclassification.ipynb
 touch notebooks/02_preprocessing.ipynb
 touch notebooks/03_intent_classification.ipynb
 touch notebooks/04_model_acc_verification.ipynb
