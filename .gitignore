@@ -226,6 +226,7 @@ scripts/setup_spacy.py
 # models/
 # Large training artifacts
 models/embeddings/
+models/others
 models/rag/*.pkl
 
 
