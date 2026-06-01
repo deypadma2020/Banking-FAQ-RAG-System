@@ -233,3 +233,7 @@ models/rag/*.pkl
 vectorstore/
 data/
 test/
+
+
+# Notebook backups
+*.backup.ipynb
