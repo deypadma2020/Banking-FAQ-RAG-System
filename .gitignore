@@ -237,3 +237,7 @@ test/
 
 # Notebook backups
 *.backup.ipynb
+notebooks/others
+notebooks/15_ragas_evaluation.ipynb
+notebooks/16_deepeval_evaluation.ipynb
+notebooks/17_performance_benchmarking.ipynb
