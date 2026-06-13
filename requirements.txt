@@ -1,37 +1,72 @@
+# ---------------- CORE DATA STACK ----------------
 pandas==2.2.2
 numpy==1.26.4
+scipy==1.13.1
 
+# ---------------- VISUALIZATION ----------------
 matplotlib==3.9.0
 seaborn==0.13.2
 plotly==5.22.0
+wordcloud==1.9.3
 
+# ---------------- MACHINE LEARNING ----------------
 scikit-learn==1.5.0
+imbalanced-learn==0.12.3
+xgboost==2.1.0
 
+# ---------------- NLP ----------------
 nltk==3.8.1
 spacy==3.7.5
+en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1-py3-none-any.whl
 
+# ---------------- EMBEDDINGS / LLM STACK ----------------
 sentence-transformers==2.6.1
+transformers==4.41.2
+huggingface-hub==0.23.4
+tokenizers==0.19.1
+torch==2.3.1
+
 faiss-cpu==1.8.0.post1
 
+# ---------------- LANGCHAIN (STABLE 0.2.x ECOSYSTEM ONLY) ----------------
 langchain==0.2.16
 langchain-community==0.2.16
 langchain-core==0.2.38
+langchain-text-splitters==0.2.2
 langchain-huggingface==0.0.3
-langchain-groq==0.1.9
-langsmith==0.1.114
 
+langchain-groq==0.1.9
 groq==0.9.0
 
-streamlit==1.36.0
+langsmith==0.1.114
 
+# ---------------- RAG EVALUATION STACK (STABLE) ----------------
+# ragas==0.1.10
+# datasets==2.20.0
+# evaluate==0.4.2
+
+# deepeval==0.21.0
+# tiktoken==0.7.0
+
+openai==1.30.1
+
+# ---------------- APP ----------------
+streamlit==1.36.0
 python-dotenv==1.0.1
 
+# ---------------- UTILITIES ----------------
+requests==2.32.3
 tqdm==4.66.4
+PyYAML==6.0.2
 
-ipykernel==6.29.4
-jupyter==1.0.0
+# ---------------- CORE COMPATIBILITY ----------------
+pydantic==2.8.2
+SQLAlchemy==2.0.32
 
-wordcloud==1.9.3
-
-xgboost==2.1.0
-imbalanced-learn
+# ---------------- IMPORTANT EXCLUSIONS ----------------
+# DO NOT INSTALL:
+# - langgraph
+# - langchain-classic
+# - instructor
+# - google-generativeai
+# - langchain-google-genai (causes schema conflicts with ragas)
