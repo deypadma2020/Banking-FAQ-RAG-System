@@ -233,6 +233,7 @@ models/rag/*.pkl
 vectorstore/
 data/
 test/
+logs/
 
 
 # Notebook backups
