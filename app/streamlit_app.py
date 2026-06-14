@@ -1,194 +1,352 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
-import pickle
-import re
+import json
 
-from scipy.sparse import hstack
+from utils.intent_classifier import predict
 
-# CONFIG
-CONFIDENCE_THRESHOLD = 60
+from utils.relevance_checker import (
+    knowledge_base_relevance_check
+)
 
-st.set_page_config(page_title="Banking Intent Classification", layout="wide")
-st.title("🏦 Banking FAQ Intent Classification")
-st.markdown("""Predict banking query intents using a trained NLP model.""")
+from utils.guardrails import (
+    security_gateway,
+    generate_rejection
+)
 
-# LOAD MODELS
-@st.cache_resource
-def load_models():
+from utils.vector_store import (
+    retrieve_documents,
+    generate_rag_answer,
+    format_sources
+)
 
-    with open("models/intent_classification/best_intent_classifier.pkl", "rb") as f:
-        best_model = pickle.load(f)
+from utils.response_validator import (
+    validate_response
+)
 
-    with open("models/intent_classification/word_vectorizer.pkl", "rb") as f:
-        word_vectorizer = pickle.load(f)
+from utils.multi_llm_judge import (
+    run_multi_llm_judge
+)
 
-    with open("models/intent_classification/char_vectorizer.pkl", "rb") as f:
-        char_vectorizer = pickle.load(f)
+from utils.trust_governance import (
+    run_governance_pipeline
+)
 
-    with open("models/intent_classification/label_encoder.pkl", "rb") as f:
-        label_encoder = pickle.load(f)
+# --------------------------------------------------
+# PAGE CONFIG
+# --------------------------------------------------
 
-    return (best_model, word_vectorizer, char_vectorizer, label_encoder)
+st.set_page_config(
+    page_title="Enterprise Banking AI Assistant",
+    page_icon="🏦",
+    layout="wide"
+)
 
-(best_model, word_vectorizer, char_vectorizer, label_encoder) = load_models()
+st.title("🏦 Enterprise Banking AI Assistant")
 
+st.markdown(
+    """
+Enterprise RAG Banking Assistant
 
-# PREPROCESSING
-def preprocess_text(text):
-    text = str(text).lower()
-    text = re.sub(r"[^a-zA-Z\s]", " ", text)
-    text = re.sub(r"\s+", " ", text).strip()
-    return text
+Features:
 
+- Intent Classification
+- Knowledge Relevance Validation
+- Guardrails Protection
+- FAISS Vector Search
+- Groq LLM Generation
+- Groundedness Validation
+- Multi LLM Judging
+- Trust Scoring
+- Human Escalation
+"""
+)
 
-# CONFIDENCE BAND
-def get_confidence_band(confidence):
-    if confidence >= 80:
-        return "High"
-    elif confidence >= 60:
-        return "Medium"
-    elif confidence >= 40:
-        return "Low"
-    else:
-        return "Very Low"
-
-
-# FEATURE CREATION
-def create_features(text):
-    word_features = word_vectorizer.transform([text])
-    char_features = char_vectorizer.transform([text])
-    combined_features = hstack([word_features, char_features])
-    return combined_features
-
-
-
-# SINGLE PREDICTION
-def predict_intent(question):
-    clean_question = preprocess_text(question)
-    features = create_features(clean_question)
-    prediction = (best_model.predict(features))[0]
-
-    predicted_intent = (label_encoder.inverse_transform([prediction])[0])
-
-    # Handle models without predict_proba()
-    if hasattr(best_model, "predict_proba"):
-        confidence = (best_model.predict_proba(features).max()* 100)
-    else:
-        confidence = np.nan
-
-    confidence_band = (get_confidence_band(confidence) if not np.isnan(confidence) else "Not Available")
-
-    review_required = (
-        "Yes"
-        if (not np.isnan(confidence) and confidence < CONFIDENCE_THRESHOLD)
-        else "No"
-    )
-
-    return {
-        "Question": question,
-        "clean_question": clean_question,
-        "Predicted_Intent": predicted_intent,
-        "Confidence": (round(confidence, 2) if not np.isnan(confidence) else "N/A"),
-        "Confidence_Band": confidence_band,
-        "Review_Required": review_required
-    }
-
-
-
-# BATCH PREDICTION
-def predict_dataframe(df):
-    df = df.copy()
-    if "Question" not in df.columns:
-        raise ValueError("Question column not found.")
-
-    results = (df["Question"].astype(str).apply(predict_intent))
-    output_df = pd.DataFrame(results.tolist())
-
-    return output_df
-
-
+# --------------------------------------------------
 # SIDEBAR
-option = st.sidebar.radio("Choose Prediction Mode",["Single Question Prediction", "File Prediction"])
+# --------------------------------------------------
 
+st.sidebar.header("System Information")
 
-# SINGLE QUESTION
-if option == "Single Question Prediction":
-    st.header("📝 Single Question Prediction")
-    user_query = st.text_area("Enter Banking Question")
-    if st.button("Predict Intent"):
-        if not user_query.strip():
-            st.warning("Please enter a question.")
-        else:
-            result = predict_intent(user_query)
+st.sidebar.success("Intent Classification")
+st.sidebar.success("Knowledge Relevance")
+st.sidebar.success("Guardrails")
+st.sidebar.success("FAISS Retrieval")
+st.sidebar.success("Groq LLM")
+st.sidebar.success("Response Validation")
+st.sidebar.success("Multi LLM Judge")
+st.sidebar.success("Trust Governance")
 
-            st.success(f"Predicted Intent: "f"{result['Predicted_Intent']}")
+# --------------------------------------------------
+# USER INPUT
+# --------------------------------------------------
+
+query = st.text_area(
+    "Enter Banking Question",
+    height=120
+)
+
+# --------------------------------------------------
+# PROCESS BUTTON
+# --------------------------------------------------
+
+if st.button("Ask Banking Assistant"):
+
+    if not query.strip():
+
+        st.warning(
+            "Please enter a banking question."
+        )
+
+    else:
+
+        with st.spinner(
+            "Running Enterprise Banking Pipeline..."
+        ):
+
+            # ==================================
+            # GUARDRAILS
+            # ==================================
+
+            guardrail_result = security_gateway(
+                query
+            )
+
+            if not guardrail_result["allowed"]:
+
+                rejection_message = (
+                    generate_rejection(
+                        guardrail_result["report"]
+                    )
+                )
+
+                st.error(rejection_message)
+
+                st.stop()
+
+            # ==================================
+            # INTENT
+            # ==================================
+
+            intent_result = predict(query)
+
+            # ==================================
+            # RELEVANCE
+            # ==================================
+
+            relevance_result = (
+                knowledge_base_relevance_check(
+                    query
+                )
+            )
+
+            if (
+                relevance_result["final_decision"]
+                == "Not Relevant"
+            ):
+
+                st.warning(
+                    "Query outside banking domain."
+                )
+
+                st.stop()
+
+            # ==================================
+            # RETRIEVE DOCUMENTS
+            # ==================================
+
+            docs = retrieve_documents(
+                query,
+                k=5
+            )
+
+            context = "\n\n".join(
+                [
+                    doc.page_content
+                    for doc in docs
+                ]
+            )
+
+            # ==================================
+            # GENERATE ANSWER
+            # ==================================
+
+            answer = generate_rag_answer(
+                query,
+                context
+            )
+
+            # ==================================
+            # RESPONSE VALIDATION
+            # ==================================
+
+            validation_results = (
+                validate_response(
+                    query,
+                    context,
+                    answer
+                )
+            )
+
+            # ==================================
+            # MULTI LLM JUDGE
+            # ==================================
+
+            judge_results = (
+                run_multi_llm_judge(
+                    question=query,
+                    context=context,
+                    answer=answer,
+                    intent_confidence=
+                    intent_result["Confidence"],
+                    relevance_score=
+                    relevance_result[
+                        "semantic_similarity"
+                    ] * 100
+                )
+            )
+
+            # ==================================
+            # TRUST GOVERNANCE
+            # ==================================
+
+            governance = run_governance_pipeline(
+
+                question=query,
+
+                intent_confidence=intent_result["Confidence"],
+
+                relevance_score=relevance_result["semantic_similarity"] * 100,
+
+                groundedness_score=validation_results["grounding"]["confidence"],
+
+                hallucination_score=validation_results["hallucination"]["confidence"],
+
+                consensus_score=judge_results["consensus_score"],
+
+                trust_score=judge_results["trust_score"],
+
+                trust_level=judge_results["trust_level"]
+            )
+
+            # ==================================
+            # ANSWER
+            # ==================================
+
+            st.subheader("AI Answer")
+
+            st.success(answer)
+
+            # ==================================
+            # TRUST SCORE
+            # ==================================
 
             col1, col2, col3 = st.columns(3)
+
             with col1:
-                st.metric("Confidence", result["Confidence"])
+
+                st.metric(
+                    "Trust Score",
+                    governance["trust_score"]
+                )
+
             with col2:
-                st.metric("Confidence Band", result["Confidence_Band"])
+
+                st.metric(
+                    "Trust Level",
+                    governance["trust_level"]
+                )
+
             with col3:
-                st.metric("Review Required", result["Review_Required"])
 
+                st.metric(
+                    "Decision",
+                    governance["decision"]["status"]
+                )
 
-# FILE PREDICTION
-elif option == "File Prediction":
-    st.header("📂 File Prediction")
+            # ==================================
+            # INTENT DETAILS
+            # ==================================
 
-    uploaded_file = st.file_uploader("Upload CSV or Excel File", type=["csv", "xlsx", "xls"])
+            with st.expander(
+                "Intent Classification"
+            ):
 
-    st.info("File must contain a column named 'Question'")
+                st.json(intent_result)
 
-    if uploaded_file is not None:
-        try:
-            extension = (uploaded_file.name.split(".")[-1].lower())
-            if extension == "csv":
-                try:
-                    df = pd.read_csv(uploaded_file, encoding="utf-8")
-                except:
-                    df = pd.read_csv(uploaded_file, encoding="latin1")
+            # ==================================
+            # RELEVANCE
+            # ==================================
+
+            with st.expander(
+                "Knowledge Relevance"
+            ):
+
+                st.json(relevance_result)
+
+            # ==================================
+            # RESPONSE VALIDATION
+            # ==================================
+
+            with st.expander(
+                "Response Validation"
+            ):
+
+                st.json(validation_results)
+
+            # ==================================
+            # MULTI LLM JUDGE
+            # ==================================
+
+            with st.expander(
+                "Multi LLM Judge"
+            ):
+
+                st.json(judge_results)
+
+            # ==================================
+            # GOVERNANCE
+            # ==================================
+
+            with st.expander(
+                "Governance Report"
+            ):
+
+                st.json(governance)
+
+            # ==================================
+            # SOURCES
+            # ==================================
+
+            with st.expander(
+                "Retrieved Sources"
+            ):
+
+                sources = format_sources(
+                    docs
+                )
+
+                st.dataframe(
+                    pd.DataFrame(sources)
+                )
+
+            # ==================================
+            # HUMAN ESCALATION
+            # ==================================
+
+            if governance["decision"][
+                "human_review"
+            ]:
+
+                st.error(
+                    "Human Review Required."
+                )
+
+                st.info(
+                    "Escalation Ticket Created."
+                )
+
             else:
-                df = pd.read_excel(uploaded_file)
 
-            st.subheader("Uploaded Data")
-            st.dataframe(df.head())
-
-            if "Question" not in df.columns:
-                st.error("Question column not found.")
-            else:
-                if st.button("Predict Intents"):
-                    prediction_df = (predict_dataframe(df))
-                    total_records = len(prediction_df)
-                    avg_confidence = pd.to_numeric(prediction_df["Confidence"], errors="coerce").mean()
-                    review_required = (prediction_df["Review_Required"].eq("Yes").sum())
-
-                    col1, col2, col3 = st.columns(3)
-                    with col1:
-                        st.metric("Total Records", total_records)
-                    with col2:
-                        st.metric("Average Confidence",
-                            (
-                                f"{avg_confidence:.2f}%"
-                                if not np.isnan(avg_confidence)
-                                else "N/A"
-                            )
-                        )
-                    with col3:
-                        st.metric("Review Required", review_required)
-
-                    st.subheader("Prediction Results")
-                    st.dataframe(prediction_df)
-
-                    csv = (prediction_df.to_csv(index=False))
-
-                    st.download_button(
-                        label="⬇ Download Predictions",
-                        data=csv,
-                        file_name="predicted_output.csv",
-                        mime="text/csv"
-                    )
-
-        except Exception as e:
-            st.error(f"Error: {str(e)}")
+                st.success(
+                    "No Human Review Required."
+                )
