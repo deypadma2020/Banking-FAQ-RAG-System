@@ -8,15 +8,20 @@ matplotlib==3.9.0
 seaborn==0.13.2
 plotly==5.22.0
 wordcloud==1.9.3
+Pillow==10.4.0
 
 # ---------------- MACHINE LEARNING ----------------
 scikit-learn==1.5.0
 imbalanced-learn==0.12.3
 xgboost==2.1.0
 
+
 # ---------------- NLP ----------------
 nltk==3.8.1
 spacy==3.7.5
+thinc==8.2.5
+markdown-it-py==2.2.0
+
 en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1-py3-none-any.whl
 
 # ---------------- EMBEDDINGS / LLM STACK ----------------
@@ -28,7 +33,7 @@ torch==2.3.1
 
 faiss-cpu==1.8.0.post1
 
-# ---------------- LANGCHAIN (STABLE 0.2.x ECOSYSTEM ONLY) ----------------
+# ---------------- LANGCHAIN (STABLE 0.2.x ONLY) ----------------
 langchain==0.2.16
 langchain-community==0.2.16
 langchain-core==0.2.38
@@ -40,16 +45,6 @@ groq==0.9.0
 
 langsmith==0.1.114
 
-# ---------------- RAG EVALUATION STACK (STABLE) ----------------
-# ragas==0.1.10
-# datasets==2.20.0
-# evaluate==0.4.2
-
-# deepeval==0.21.0
-# tiktoken==0.7.0
-
-openai==1.30.1
-
 # ---------------- APP ----------------
 streamlit==1.36.0
 python-dotenv==1.0.1
@@ -58,6 +53,8 @@ python-dotenv==1.0.1
 requests==2.32.3
 tqdm==4.66.4
 PyYAML==6.0.2
+packaging==24.2
+httpx==0.27.2
 
 # ---------------- CORE COMPATIBILITY ----------------
 pydantic==2.8.2
@@ -66,7 +63,13 @@ SQLAlchemy==2.0.32
 # ---------------- IMPORTANT EXCLUSIONS ----------------
 # DO NOT INSTALL:
 # - langgraph
+# - langgraph-checkpoint
 # - langchain-classic
 # - instructor
-# - google-generativeai
-# - langchain-google-genai (causes schema conflicts with ragas)
+# - openai>=2.x
+# - google-genai
+# - langchain-google-genai
+# - ragas
+# - deepeval
+
+httpx==0.27.2
